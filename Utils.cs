@@ -1,282 +1,83 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using Component = UnityEngine.Component;
 
 namespace LoU
 {
-    class Utils
+    internal static class Extensions
     {
-        public static bool IsList(object o)
+        
+
+        internal static bool Contains2(this string source, string toCheck)
         {
-            if (o == null) return false;
-            return o is IList &&
+            if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(toCheck)) return false;
+            return source.IndexOf(toCheck, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        internal static bool IsNullOrEmpty(this string source)
+        {
+            return string.IsNullOrEmpty(source);
+        }
+
+        internal static bool IsNotNullOrEmpty(this string source)
+        {
+            return !string.IsNullOrEmpty(source);
+        }
+
+        internal static bool IsNullOrEmpty<T>(this List<T> source)
+        {
+            return source.IsNull() || source.Count == 0;
+        }
+        
+        internal static bool IsNullOrEmpty<T>(this IEnumerable<T> source)
+        {
+            return source == null || !source.Any();
+        }
+
+        internal static bool IsNull<T>(this T source)
+        {
+            return source == null;
+        }
+
+        internal static bool IsNotNull<T>(this T source)
+        {
+            return source != null;
+        }
+
+        internal static bool IsEmpty(this string source)
+        {
+            return source == "";
+        }
+
+        internal static bool IsDictionary(this object o)
+        {
+            if (o.IsNull()) return false;
+            return o is IDictionary &&
                    o.GetType().IsGenericType &&
-                   o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>));
+                   o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(Dictionary<,>));
         }
-
-        public static Dictionary<string, FloatingPanel> FindPanelByName(String name)
+        
+        internal static float DistanceFrom(this Vector3 a, Vector3 b)
         {
-            Dictionary<string, FloatingPanel> FoundPanels = new Dictionary<string, FloatingPanel>();
-
-            FloatingPanelManager fpm = FloatingPanelManager.DJCGIMIDOPB;
-            if (fpm != null)
-            {
-                List<FloatingPanel> AGLMPFPPEDK = (List<FloatingPanel>)Utils.GetInstanceField(fpm, "AGLMPFPPEDK");
-                if (AGLMPFPPEDK != null)
-                {
-                    foreach (FloatingPanel floatingPanel in AGLMPFPPEDK)
-                    {
-                        //Utils.Log("Panel " + floatingPanel.PanelId);
-                        if (name == null || name == "" || floatingPanel.PanelId.ToLower().Contains(name.ToLower()))
-                        {
-                            //Utils.Log("Panel " + floatingPanel.PanelId + " matches!");
-                            FoundPanels.Add(floatingPanel.PanelId, floatingPanel);
-                            //if (this.FindPanelResults.Count == 20)
-                            //{
-                            //    Utils.Log("Breaking at 20, too many.");
-                            //    break;
-                            //}
-                        }
-
-                    }
-                }
-            }
-
-            //Log("Found total of " + FoundPanels.Count.ToString() + " panels.");
-            return FoundPanels;
+            if (a.IsNull() || b.IsNull()) return 0;
+            var num1 = a.x - b.x;
+            var num2 = a.y - b.y;
+            var num3 = a.z - b.z;
+            return (float) Math.Sqrt((double) num1 * num1 + (double) num2 * num2 + (double) num3 * num3);
         }
-
-        public static Dictionary<string, DynamicObject> FindDynamicObjectsByName(String name)
-        {
-            Dictionary<string, DynamicObject> FoundObjects = new Dictionary<string, DynamicObject>();
-            IEnumerable Objects;
-
-            Objects = GetDynamicObjects();
-            foreach (DynamicObject obj in Objects)
-            {
-                if (obj.EBHEDGHBHGI.ToLower().Contains(name.ToLower()))
-                {
-                    //Log("Found " + obj.EBHEDGHBHGI);
-                    FoundObjects.Add(obj.ObjectId.ToString(), obj);
-                }
-                //if (FoundObjects.Count == 20)
-                //{
-                //    Log("Breaking at 20, too many.");
-                //    break;
-                //}
-            }
-            //Log("Found total of " + FoundObjects.Count.ToString() + " items.");
-            return FoundObjects;
-        }
-        public static Dictionary<string, DynamicObject> FindDynamicObjectsByName(String name, ulong containerId)
-        {
-            Dictionary<string, DynamicObject> FoundObjects = new Dictionary<string, DynamicObject>();
-            IEnumerable Objects;
-
-            Objects = ClientObjectManager.DJCGIMIDOPB.GetObjectsInContainer(containerId);
-            foreach (DynamicObject obj in Objects)
-            {
-                if (name == null || name == "" || obj.EBHEDGHBHGI.ToLower().Contains(name.ToLower()))
-                {
-                    //Log("Found " + obj.EBHEDGHBHGI);
-                    FoundObjects.Add(obj.ObjectId.ToString(), obj);
-                }
-                //if (FoundObjects.Count == 20)
-                //{
-                //    Log("Breaking at 20, too many.");
-                //    break;
-                //}
-            }
-            //Log("Found total of " + FoundObjects.Count.ToString() + " items.");
-            return FoundObjects;
-        }
-        public static ClientObject FindClientObject(ulong objectId)
-        {
-            return FindClientObject(objectId, 0);
-        }
-        public static ClientObject FindClientObject(ulong objectId, ulong containerId)
-        {
-            if (containerId > 0)
-            {
-                foreach (DynamicObject obj in ClientObjectManager.DJCGIMIDOPB.GetObjectsInContainer(containerId))
-                {
-                    if (obj.ObjectId == objectId)
-                    {
-                        return obj.GetComponent<ClientObject>();
-                    }
-                }
-            }
-            else
-            {
-                ClientObject clientObject = ClientObjectManager.DJCGIMIDOPB.GetClientObjectById(objectId);
-                if (clientObject != null)
-                {
-                    return clientObject;
-                }
-            }
-            return null;
-        }
-
-        public static DynamicObject FindDynamicObject(ulong objectId)
-        {
-            return FindDynamicObject(objectId, 0);
-        }
-        public static DynamicObject FindDynamicObject(ulong objectId, ulong containerId)
-        {
-            if (containerId > 0)
-            {
-                foreach (DynamicObject obj in ClientObjectManager.DJCGIMIDOPB.GetObjectsInContainer(containerId))
-                {
-                    if (obj.ObjectId == objectId)
-                    {
-                        return obj;
-                    }
-                }
-            }
-            else
-            {
-                DynamicObject dynamicObject = ClientObjectManager.DJCGIMIDOPB.GetDynamicObjectById(objectId);
-                return dynamicObject;
-            }
-            return null;
-        }
-
-        public static Dictionary<string, ClientObject> FindPermanentObjectByName(String name)
-        {
-            return FindPermanentObjectByName(name, 30);
-        }
-        public static Dictionary<string, ClientObject> FindPermanentObjectByName(String name, float distance)
-        {
-            Dictionary<string, ClientObject> FoundPermanents = new Dictionary<string, ClientObject>();
-
-            IEnumerable Objects = ClientObjectManager.DJCGIMIDOPB.PermanentObjectLookup.Values.OrderBy(obj => Vector3.Distance(obj.transform.position, GameObjectSingleton<ApplicationController>.DJCGIMIDOPB.Player.transform.position));
-
-            foreach (ClientObject obj in Objects)
-            {
-                if (Vector3.Distance(obj.transform.position, GameObjectSingleton<ApplicationController>.DJCGIMIDOPB.Player.transform.position) > distance)
-                {
-                    //Log("Breaking because of distance.");
-                    break;
-                }
-                if (obj.name != null && obj.name != "" && (name == "" || obj.name.ToLower().Contains(name?.ToLower() ?? "")))
-                {
-                    //Log("Found " + obj.name);
-                    FoundPermanents.Add(obj.PermanentId.ToString(), obj);
-                }
-                //if (FoundPermanents.Count == 20)
-                //{
-                //    Log("Breaking at 20, too many.");
-                //    break;
-                //}
-            }
-            //Log("Found total of " + FoundPermanents.Count.ToString() + " permanents.");
-            return FoundPermanents;
-        }
-        public static ClientObject FindPermanentObject(int permanentId)
-        {
-            ClientObject clientObject = ClientObjectManager.DJCGIMIDOPB.GetPermanentObjectById(permanentId);
-            if (clientObject != null)
-            {
-                return clientObject;
-            }
-            return null;
-        }
-
-        public static IEnumerable<DynamicObject> GetDynamicObjects()
-        {
-            //
-            // In 0.9.2 was: return ClientObjectManager.DJCGIMIDOPB.__BB_OBFUSCATOR_89();
-            // It returned all the dynamic objects.
-            //
-            // Changed in 0.9.3 to: return ClientObjectManager.DJCGIMIDOPB.MFGFGOCNCDG;
-            // The __BB_OBFUSCATOR_89() disappeared.
-            // However, the MFGFGOCNCDG property seem to hold all the cached dynamic objects.
-            //
-            return ClientObjectManager.DJCGIMIDOPB.MFGFGOCNCDG;
-        }
-
-        public static GameObject[] GetGameObjects()
-        {
-            return GameObject.FindObjectsOfType<GameObject>();
-        }
-        public static Dictionary<string, GameObject> FindGameObjectsByName(string name)
-        {
-            GameObject[] gameObjects = GetGameObjects();
-            Dictionary<string, GameObject> foundGameObjects = new Dictionary<string, GameObject>();
-            foreach (GameObject gameObject in gameObjects)
-            {
-                if (gameObject.name != null && gameObject.name != "" && (name == "" || gameObject.name.ToLower().Contains(name?.ToLower() ?? "")))
-                {
-                    if (!foundGameObjects.ContainsKey(gameObject.name))
-                    {
-                        foundGameObjects.Add(gameObject.name, gameObject);
-                    }
-                }
-            }
-            return foundGameObjects;
-        }
-
-        public static IEnumerable<MobileInstance> GetNearbyMobiles(float distance)
-        {
-            if (ClientObjectManager.DJCGIMIDOPB != null)
-                return ClientObjectManager.DJCGIMIDOPB.GetNearbyMobiles(distance);
-            else
-                return ClientObjectManager.DJCGIMIDOPB.GetNearbyMobiles(30);
-        }
-        public static MobileInstance GetMobile(ulong objectId)
-        {
-            return ClientObjectManager.DJCGIMIDOPB.GetMobileObjectById(objectId);
-        }
-        public static List<MobileInstance> FindMobile(string name)
-        {
-            return FindMobile(name, 30);
-        }
-        public static List<MobileInstance> FindMobile(string name, float distance)
-        {
-            List<MobileInstance> foundMobiles = new List<MobileInstance>();
-
-            IEnumerable<MobileInstance> nearbyMobiles = GetNearbyMobiles(distance);
-            if (nearbyMobiles == null || nearbyMobiles.Count() == 0)
-                return foundMobiles;
-
-            IEnumerable<MobileInstance> mobiles = nearbyMobiles.OrderBy(obj => obj?.transform?.position != null && GameObjectSingleton<ApplicationController>.DJCGIMIDOPB?.Player?.transform?.position != null ? Vector3.Distance(obj.transform.position, GameObjectSingleton<ApplicationController>.DJCGIMIDOPB.Player.transform.position) : 0);
-            if (mobiles == null || mobiles.Count() == 0)
-                return foundMobiles;
-
-            foreach (MobileInstance mobile in mobiles)
-            {
-                if (Vector3.Distance(mobile.transform.position, GameObjectSingleton<ApplicationController>.DJCGIMIDOPB.Player.transform.position) > distance)
-                {
-                    //Log("Breaking because of distance.");
-                    break;
-                }
-                if (mobile.EBHEDGHBHGI != null && mobile.EBHEDGHBHGI != "" && (name == "" || mobile.EBHEDGHBHGI.ToLower().Contains(name?.ToLower() ?? "")))
-                {
-
-                    if (!foundMobiles.Contains(mobile))
-                    {
-                        //Utils.Log("found!");
-                        foundMobiles.Add(mobile);
-                    }
-                }
-                //if (foundMobiles.Count == 20)
-                //{
-                //    Log("Breaking at 20, too many.");
-                //    break;
-                //}
-            }
-            return foundMobiles;
-        }
-
-        public static Vector3 CalculateRelativePosition(Transform transform, Transform ancestor)
+        
+        internal static Vector3 RelativePositionFrom(this Transform transform, Transform ancestor)
         {
             Vector3 position = transform.localPosition;
             Transform t = transform.parent;
-            while (t != null && t != ancestor)
+            
+            while (t.IsNotNull() && t != ancestor)
             {
                 position = position + t.localPosition;
                 t = t.parent;
@@ -284,329 +85,320 @@ namespace LoU
             return position;
         }
 
-        #region reflection stuff
+        internal static void Enumerate<T>(this IEnumerable<T> ie, Action<T, int> action)
+        {
+            var i = 0;
+            foreach (var e in ie) action(e, i++);
+        }
+    }
+
+    internal static class Utils
+    {
+
+        public static Dictionary<string, FloatingPanel> FindPanelByName(string name)
+        {
+
+            var foundPanels = new Dictionary<string, FloatingPanel>();
+            var fpm = FloatingPanelManager.DJCGIMIDOPB;
+            if (!fpm) return foundPanels;
+
+            var panels = (List<FloatingPanel>) InstanceFields.GetInstanceField(fpm, "AGLMPFPPEDK");
+            if (panels.IsNullOrEmpty()) return foundPanels;
+
+            foreach (var floatingPanel in panels)
+            {
+                if (name.IsNullOrEmpty() || floatingPanel.PanelId.Contains2(name))
+                    foundPanels.Add(floatingPanel.PanelId, floatingPanel);
+            }
+
+            Logging.Log($"[FindPanelByName] - Found {foundPanels.Count} panels by {name}.");
+            return foundPanels;
+        }
+
+        public static Dictionary<string, DynamicObject> FindDynamicObjectsByName(string name)
+        {
+
+            var objects = Enumerable.ToList(ClientObjectManager.DJCGIMIDOPB.MFGFGOCNCDG);
+            Dictionary<string, DynamicObject> foundObjects = new Dictionary<string, DynamicObject>();
+
+            foreach (var obj in objects)
+            {
+                if (obj.EBHEDGHBHGI.Contains2(name))
+                    foundObjects.Add(obj.ObjectId.ToString(), obj);
+            }
+
+            Logging.Log($"[FindDynamicObjectsByName] - Found {foundObjects.Count()} dynamic objects by {name}.");
+            return foundObjects;
+        }
+
+        public static Dictionary<string, DynamicObject> FindDynamicObjectsByName(string name, ulong containerId)
+        {
+            var foundObjects = new Dictionary<string, DynamicObject>();
+            var objects = ClientObjectManager.DJCGIMIDOPB.GetObjectsInContainer(containerId);
+
+            foreach (DynamicObject obj in objects)
+            {
+                if (name.IsNullOrEmpty() || obj.EBHEDGHBHGI.Contains2(name))
+                    foundObjects.Add(obj.ObjectId.ToString(), obj);
+            }
+
+            Logging.Log(
+                $"[FindDynamicObjectsByName] - Found {foundObjects.Count} dynamic objects by {name} and {containerId}.");
+            return foundObjects;
+        }
+        
+        public static DynamicObject FindDynamicObject(ulong objectId, ulong containerId = 0)
+        {
+            if (containerId > 0)
+            {
+                foreach (DynamicObject obj in ClientObjectManager.DJCGIMIDOPB.GetObjectsInContainer(containerId))
+                {
+                    if (obj.ObjectId == objectId)
+                        return obj;
+                }
+            }
+            else
+            {
+                DynamicObject dynamicObject = ClientObjectManager.DJCGIMIDOPB.GetDynamicObjectById(objectId);
+                return dynamicObject;
+            }
+
+            Logging.Log($"[FindDynamicObject] - Did not find Dynamic Object by id {objectId} and {containerId}.");
+            return null;
+        }
+
+        public static ClientObject FindClientObject(ulong objectId, ulong containerId = 0)
+        {
+            if (containerId > 0)
+            {
+                foreach (DynamicObject obj in ClientObjectManager.DJCGIMIDOPB.GetObjectsInContainer(containerId))
+                {
+                    if (obj.ObjectId == objectId)
+                        return obj.GetComponent<ClientObject>();
+                }
+            }
+            else
+            {
+                ClientObject clientObject = ClientObjectManager.DJCGIMIDOPB.GetClientObjectById(objectId);
+                if (!clientObject.IsNull())
+                    return clientObject;
+            }
+
+            Logging.Log($"[FindClientObject] - Did not find Client Object by id {objectId} and {containerId}.");
+            return null;
+        }
+
+        public static ClientObject FindPermanentObject(int permanentId)
+        {
+            return ClientObjectManager.DJCGIMIDOPB.GetPermanentObjectById(permanentId);
+        }
+
+        public static Dictionary<string, ClientObject> FindPermanentObjectByName(string name, float distance = 50)
+        {
+            var foundObjects = new Dictionary<string, ClientObject>();
+
+            IEnumerable objects = ClientObjectManager.DJCGIMIDOPB.PermanentObjectLookup.Values.OrderBy(obj =>
+                Vector3.Distance(obj.transform.position,
+                    GameObjectSingleton<ApplicationController>.DJCGIMIDOPB.Player.transform.position));
+
+            foreach (ClientObject obj in objects)
+            {
+                if (Vector3.Distance(obj.transform.position,
+                    GameObjectSingleton<ApplicationController>.DJCGIMIDOPB.Player.transform.position) > distance)
+                    break;
+
+                if (obj.name.IsNotNullOrEmpty() && (name.IsEmpty() || obj.name.Contains2(name)))
+                    foundObjects.Add(obj.PermanentId.ToString(), obj);
+            }
+
+            Logging.Log(
+                $"[FindPermanentObjectByName] - Found {foundObjects.Count} objects by {name} with dist of {distance}.");
+            return foundObjects;
+        }
+
+        public static IEnumerable<MobileInstance> GetNearbyMobiles(float distance)
+        {
+            if (ClientObjectManager.DJCGIMIDOPB.IsNotNull())
+                return ClientObjectManager.DJCGIMIDOPB.GetNearbyMobiles(distance);
+            return ClientObjectManager.DJCGIMIDOPB.GetNearbyMobiles(50);
+        }
+
+        public static MobileInstance GetMobile(ulong objectId)
+        {
+            return ClientObjectManager.DJCGIMIDOPB.GetMobileObjectById(objectId);
+        }
+
+        public static List<MobileInstance> FindMobile(string name, float distance = 50)
+        {
+            var playerPosition = GameObjectSingleton<ApplicationController>.DJCGIMIDOPB.Player.transform.position;
+            var foundMobiles = new List<MobileInstance>();
+            var nearbyMobiles = GetNearbyMobiles(distance).ToArray();
+            if (nearbyMobiles.IsNullOrEmpty()) return foundMobiles;
+
+            var mobiles = nearbyMobiles.OrderBy(obj =>
+                obj.transform.position.DistanceFrom(playerPosition)).ToArray();
+
+            if (mobiles.IsNullOrEmpty()) return foundMobiles;
+
+            foreach (MobileInstance mobile in mobiles)
+            {
+                if (mobile.transform.position.DistanceFrom(playerPosition) > distance)
+                {
+                    break;
+                }
+
+                if (mobile.EBHEDGHBHGI.IsNotNullOrEmpty() &&
+                    (name.IsEmpty() || mobile.EBHEDGHBHGI.Contains2(name) && !foundMobiles.Contains(mobile)))
+                {
+                    foundMobiles.Add(mobile);
+                }
+            }
+
+            Logging.Log(
+                $"[FindMobile] - Found {foundMobiles.Count} objects by {name} with dist of {distance}.");
+            return foundMobiles;
+        }
+
+    }
+
+    internal static class InstanceFields
+    {
         public static object GetInstanceField(Type type, object instance, string fieldName)
         {
-            if (instance == null)
-                return null;
-            BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-            FieldInfo field = type.GetField(fieldName, bindFlags);
+            if (instance.IsNull()) return null;
+            const BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+            var field = type.GetField(fieldName, bindFlags);
             return field?.GetValue(instance);
         }
+
         public static object GetInstanceField<T>(T instance, string fieldName)
         {
-            if (instance == null)
-                return null;
-            BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-            FieldInfo field = typeof(T).GetField(fieldName, bindFlags);
+            if (instance.IsNull()) return null;
+            const BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+            var field = typeof(T).GetField(fieldName, bindFlags);
             return field?.GetValue(instance);
         }
-        public static object GetStaticClassField(Type type, string fieldName)
-        {
-            BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-            FieldInfo field = type.GetField(fieldName, bindFlags);
-            return field?.GetValue(null);
-        }
+
         public static void SetInstanceField<T1>(T1 instance, string fieldName, object value)
         {
-            BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-            FieldInfo field = typeof(T1).GetField(fieldName, bindFlags);
-            field.SetValue(instance, value);
+            const BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+            var field = typeof(T1).GetField(fieldName, bindFlags);
+            field?.SetValue(instance, value);
         }
-        #endregion reflection stuff
+    }
 
-        #region debug and logging stuff
-        private static bool IsDictionary(object o)
-        {
-            if (o == null) return false;
-            return o is IDictionary &&
-                   o.GetType().IsGenericType &&
-                   o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(Dictionary<,>));
-        }
+    internal static class Logging {
+        
+        private static bool DEBUGGING = false;
+        
+        private static readonly List<Type> Components = new List<Type> {typeof(DynamicWindow), typeof(UIWidget), 
+            typeof(BoxCollider), typeof(DynamicWindowTwoLabelButton), typeof(DynamicWindowDefaultButton), 
+            typeof(UIImageButton), typeof(UIPlaySound), typeof(UIButtonMessage), typeof(DynamicWindowScrollableLabel), 
+            typeof(UIEventListener), typeof(BoxCollider), typeof(BoxCollider), typeof(UIEventListener), typeof(UILabel)};
 
         public static void Log(string s)
         {
-            string message = string.Format("{0} - LoU - {1}", DateTime.UtcNow.ToString("o"), s);
-            try
-            {
-                System.Diagnostics.Debug.WriteLine(message);
-                UnityEngine.Debug.Log(message);
-            }
-            catch (Exception ex)
-            {
-            }
+            if (DEBUGGING) Debug.Log($"LoU - {DateTime.UtcNow:o} - {s}");
         }
 
-        public static void LogComponents(MonoBehaviour c)
+        public static void Log(MonoBehaviour c)
         {
-            if (c.GetComponent<DynamicWindow>() != null)
-            {
-                Log("DynamicWindow");
-                DynamicWindow comp = c.GetComponent<DynamicWindow>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<UIWidget>() != null)
-            {
-                Log("UIWidget");
-                UIWidget comp = c.GetComponent<UIWidget>();
-                LogProps(comp);
+            if (!DEBUGGING) return;
 
-            }
-            if (c.GetComponent<UnityEngine.BoxCollider>() != null)
-            {
-                Log("UnityEngine.BoxCollider");
-                UnityEngine.BoxCollider comp = c.GetComponent<UnityEngine.BoxCollider>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<DynamicWindowTwoLabelButton>() != null)
-            {
-                Log("DynamicWindowTwoLabelButton");
-                DynamicWindowTwoLabelButton comp = c.GetComponent<DynamicWindowTwoLabelButton>();
-                LogProps(comp);
-            }
-
-            if (c.GetComponent<DynamicWindowDefaultButton>() != null)
-            {
-                Log("DynamicWindowDefaultButton");
-                DynamicWindowDefaultButton comp = c.GetComponent<DynamicWindowDefaultButton>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<UIImageButton>() != null)
-            {
-                Log("UIImageButton");
-                UIImageButton comp = c.GetComponent<UIImageButton>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<UIPlaySound>() != null)
-            {
-                Log("UIPlaySound");
-                UIPlaySound comp = c.GetComponent<UIPlaySound>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<UIButtonMessage>() != null)
-            {
-                Log("UIButtonMessage");
-                UIButtonMessage comp = c.GetComponent<UIButtonMessage>();
-                LogProps(comp);
-            }
-
-            if (c.GetComponent<UIEventListener>() != null)
-            {
-                Log("c has listener!");
-            }
-            if (c.gameObject != null && c.gameObject.GetComponent<UIEventListener>() != null)
-            {
+            if (c.gameObject && c.gameObject.GetComponent<UIEventListener>())
                 Log("c.gameObject has listener!");
-            }
-            if (c.transform != null && c.transform.GetComponent<UIEventListener>() != null)
-            {
+            if (c.transform && c.transform.GetComponent<UIEventListener>())
                 Log("c.transform has listener!");
-            }
 
-            if (c.GetComponent<UILabel>() != null)
+            foreach (var component in Components)
             {
-                Log("UILabel");
-                UILabel comp = c.GetComponent<UILabel>();
+                var compValue = c.GetComponent(component);
+                if(c.GetComponent(component).IsNull()) continue;
 
-                LogProps(comp);
+                Log(component.ToString());
+                LogProps(compValue);
 
-                if (comp.GBHBIODJFCD == "[412A08]Craft")
-                {
-                    Log("CRAFT BUTTON FOUND");
+                if (component != typeof(UILabel)) continue;
+                var uiLabel = (UILabel) compValue;
 
-                    if (comp.GetComponent<UIEventListener>() != null)
-                    {
-                        Log("comp has listener!");
-                    }
-                    if (comp.transform != null && comp.transform.GetComponent<UIEventListener>() != null)
-                    {
-                        Log("comp.transform has listener!");
-                    }
-                    if (comp.gameObject != null && comp.gameObject.GetComponent<UIEventListener>() != null)
-                    {
-                        Log("comp.gameObject has listener!");
-                    }
-                    if (c.GetComponent<UIEventListener>() != null)
-                    {
-                        Log("c has listener!");
-                    }
-                }
-            }
-            if (c.GetComponent<DynamicWindowScrollableLabel>() != null)
-            {
-                Log("DynamicWindowScrollableLabel");
-                DynamicWindowScrollableLabel comp = c.GetComponent<DynamicWindowScrollableLabel>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<UIEventListener>() != null)
-            {
-                Log("UIEventListener");
-                UIEventListener comp = c.GetComponent<UIEventListener>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<BoxCollider>() != null)
-            {
-                Log("BoxCollider");
-                BoxCollider comp = c.GetComponent<BoxCollider>();
-                LogProps(comp);
+                if (uiLabel.GBHBIODJFCD != "[412A08]Craft") continue;
+                Log("CRAFT BUTTON FOUND");
+                    
+                if (uiLabel.GetComponent<UIEventListener>().IsNull()) continue;
+                Log("uiLabel has listener!");
+                    
+                if (uiLabel.transform.IsNotNull())
+                    Log("uiLabel.transform has listener!");
+                if (uiLabel.gameObject.IsNotNull())
+                    Log("uiLabel.gameObject has listener!");
             }
         }
 
-        public static void LogComponents(GameObject c)
+        private static void Log(GameObject c)
         {
-            Log("trying to enumerate components " + c.GetComponents<UnityEngine.Component>());
-            int i = 0;
-            foreach (UnityEngine.Component comp in c.GetComponents<UnityEngine.Component>())
+            if (!DEBUGGING) return;
+            
+            if (c.gameObject && c.gameObject.GetComponent<UIEventListener>())
+                Log($"GameObject Name: {c.gameObject.name} Tag: {c.gameObject.tag} Has Listener!");
+            if (c.transform && c.transform.GetComponent<UIEventListener>())
+                Log($"Transform Name: {c.transform.name} Tag: {c.transform.tag} Has Listener!");
+            
+            Log($"Enumerating Through Components {c.GetComponents<Component>()}");
+
+            c.GetComponents<Component>().Enumerate((comp, i) =>
             {
-                i = i + 1;
-                Log(i.ToString());
-                Log(comp.name);
-                Log(comp.tag);
-                Log(comp.GetType().ToString());
-            }
-            if (c.GetComponent<DynamicWindow>() != null)
-            {
-                Log("DynamicWindow");
-                DynamicWindow comp = c.GetComponent<DynamicWindow>();
+                Log($"i: {i.ToString()} | name: {comp.name} | tag: {comp.tag} | type: {comp.GetType()}");
                 LogProps(comp);
 
-            }
-            if (c.GetComponent<UIWidget>() != null)
-            {
-                Log("UIWidget");
-                UIWidget comp = c.GetComponent<UIWidget>();
-                LogProps(comp);
+                if (comp.GetType() != typeof(UILabel)) return;
+                var uiLabel = (UILabel) comp;
 
-            }
-            if (c.GetComponent<UnityEngine.BoxCollider>() != null)
-            {
-                Log("UnityEngine.BoxCollider");
-                UnityEngine.BoxCollider comp = c.GetComponent<UnityEngine.BoxCollider>();
-                LogProps(comp);
-                if (comp.GetComponent<UIEventListener>() != null)
-                {
-                    Log("boxcollider2 comp has listener!");
-                }
-            }
-            if (c.GetComponent<DynamicWindowTwoLabelButton>() != null)
-            {
-                Log("DynamicWindowTwoLabelButton");
-                DynamicWindowTwoLabelButton comp = c.GetComponent<DynamicWindowTwoLabelButton>();
-                LogProps(comp);
-            }
+                if (uiLabel.GBHBIODJFCD != "[412A08]Craft") return;
+                Log("CRAFT BUTTON FOUND");
 
-            if (c.GetComponent<DynamicWindowDefaultButton>() != null)
-            {
-                Log("DynamicWindowDefaultButton");
-                DynamicWindowDefaultButton comp = c.GetComponent<DynamicWindowDefaultButton>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<UIImageButton>() != null)
-            {
-                Log("UIImageButton");
-                UIImageButton comp = c.GetComponent<UIImageButton>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<UIPlaySound>() != null)
-            {
-                Log("UIPlaySound");
-                UIPlaySound comp = c.GetComponent<UIPlaySound>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<UIButtonMessage>() != null)
-            {
-                Log("UIButtonMessage");
-                UIButtonMessage comp = c.GetComponent<UIButtonMessage>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<UIButtonMessage>() != null)
-            {
-                Log("UIEventListener");
-                UIEventListener comp = c.GetComponent<UIEventListener>();
-                LogProps(comp);
-            }
+                if (!uiLabel.GetComponent<UIEventListener>()) return;
+                Log("uiLabel has listener!");
 
-            if (c.GetComponent<UILabel>() != null)
-            {
-                Log("UILabel");
-                UILabel comp = c.GetComponent<UILabel>();
+                if (uiLabel.transform.IsNotNull())
+                    Log("uiLabel.transform has listener!");
+                if (uiLabel.gameObject.IsNotNull())
+                    Log("uiLabel.gameObject has listener!");
+            });
+            
 
-                LogProps(comp);
+            foreach (Component component in c.GetComponents<Component>())
+            {
+                if(!component) continue;
 
-                if (comp.GBHBIODJFCD == "[412A08]Craft")
-                {
-                    Log("CRAFT BUTTON FOUND");
+                Log(component.ToString());
 
-                    if (comp.GetComponent<UIEventListener>())
-                    {
-                        Log("comp has listener!");
-                    }
-                    if (comp.transform != null && comp.transform.GetComponent<UIEventListener>())
-                    {
-                        Log("comp.transform has listener!");
-                    }
-                    if (comp.gameObject != null && comp.gameObject.GetComponent<UIEventListener>())
-                    {
-                        Log("comp.gameObject has listener!");
-                    }
-                    if (c.GetComponent<UIEventListener>())
-                    {
-                        Log("c has listener!");
-                    }
-                }
-            }
-            if (c.GetComponent<DynamicWindowScrollableLabel>() != null)
-            {
-                Log("DynamicWindowScrollableLabel");
-                DynamicWindowScrollableLabel comp = c.GetComponent<DynamicWindowScrollableLabel>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<UIEventListener>() != null)
-            {
-                Log("UIEventListener");
-                UIEventListener comp = c.GetComponent<UIEventListener>();
-                LogProps(comp);
-            }
-            if (c.GetComponent<BoxCollider>() != null)
-            {
-                Log("BoxCollider");
-                BoxCollider comp = c.GetComponent<BoxCollider>();
-                LogProps(comp);
-                if (comp.GetComponent<UIEventListener>() != null)
-                {
-                    Log("boxcollider1 comp has listener!");
-                }
             }
         }
 
-        public static void LogChildren(Transform o)
+        public static void Log(Transform o)
         {
-            Log("***STARTING CHILDREN OF " + o.name);
-            List<GameObject> Children = new List<GameObject>();
-            for (var c = 0; c < o.transform.childCount; c++)
-            {
-                Children.Add(o.transform.GetChild(c).gameObject);
-            }
-            Log(Children.Count.ToString() + " children");
-            foreach (var c in Children)
+            
+            var children = Enumerable.ToList(
+                from GameObject child in o.transform select child.gameObject);
+            
+            Log($"*** CHILDREN LOG {o.name} ({children.Count}) START ***");
+            
+            foreach (var c in children)
             {
                 LogProps(c);
-                if (c.GetComponent<UIEventListener>() != null)
-                {
-                    Log("c has listener!");
-                }
-                if (c.gameObject != null && c.gameObject.GetComponent<UIEventListener>() != null)
-                {
-                    Log("c.gameObject has listener!");
-                }
-                if (c.transform != null && c.transform.GetComponent<UIEventListener>() != null)
-                {
-                    Log("c.transform has listener!");
-                }
+                
+                if (c.GetComponent<UIEventListener>())
+                    Log("child has listener!");
+                if (c.gameObject && c.gameObject.GetComponent<UIEventListener>())
+                    Log("child.gameObject has listener!");
+                if (c.transform && c.transform.GetComponent<UIEventListener>())
+                    Log("child.transform has listener!");
+
+
                 //GBHBIODJFCD =[412A08] / Craft All
                 Log("trying to enumerate " + c.GetComponents<UnityEngine.Component>());
                 int i = 0;
-                foreach (UnityEngine.Component comp in c.GetComponents<UnityEngine.Component>())
+                foreach (var comp in c.GetComponents<UnityEngine.Component>())
                 {
                     i = i + 1;
                     Log(i.ToString());
@@ -615,14 +407,14 @@ namespace LoU
                     Log(comp.GetType().ToString());
                 }
                 Log("finish");
-                LogComponents(c);
+                Log(c);
             }
-            Log("***ENDING CHILDREN OF " + o.name);
+            Log($"*** CHILDREN LOG {o.name} ({children.Count}) END ***");
         }
 
         public static void LogObject(DynamicObject obj)
         {
-            Log(obj.GetInstanceID().ToString() + " object start ----------");
+            Log( $"--- OBJECT {obj.GetInstanceID()} START ---");
             LogProps(obj);
             Log("***CLIENT OBJECT***");
             LogProps(obj.AOJMJNFMBJO);
@@ -630,34 +422,33 @@ namespace LoU
             LogProps(obj.transform);
             Log("***GAME OBJECT***");
             LogProps(obj.gameObject);
-            Log(obj.GetInstanceID().ToString() + " object end ----------");
+            Log( $"--- OBJECT {obj.GetInstanceID()} END ---");
         }
 
-        public static void LogProps(System.Object obj)
+        private static void LogProps(object obj)
         {
-            Log("props start ---");
+            Log("--- PROPS START ---");
             foreach (PropertyDescriptor descriptor in TypeDescriptor.GetProperties(obj))
             {
-                string name = descriptor.Name;
-                object value = descriptor.GetValue(obj);
-                Log(name + "=" + value);
-                if (IsDictionary(value))
+                var name = descriptor.Name;
+                var value = descriptor.GetValue(obj);
+                Log($"{name} = {value}");
+                
+                if (!value.IsDictionary()) continue;
+                var collection = ((IDictionary) value)?.Keys;
+                
+                if (collection == null) continue;
+                foreach (string key in collection)
                 {
-                    foreach (String key in ((IDictionary)value).Keys)
-                    {
-                        Log(name + ".Key=" + key);
-                        Log(name + ".Value=" + ((IDictionary)value)[key].ToString());
-                    }
+                    Log($"Key:{name}.{key} = Value:{name}.{((IDictionary) value)[key]}");
                 }
             }
 
-            Type type = obj.GetType();
-            foreach (var f in type.GetFields().Where(f => f.IsPrivate | f.IsPublic | f.IsStatic))
+            foreach (var f in obj.GetType().GetFields().Where(f => f.IsPrivate | f.IsPublic | f.IsStatic))
             {
-                Log(f.Name + "=" + f.GetValue(obj));
+                Log($"Field: {f.Name} Value: {f.GetValue(obj)}");
             }
-            Log("props end ---");
+            Log("--- PROPS END ---");
         }
-        #endregion
     }
 }
