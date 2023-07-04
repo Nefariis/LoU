@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using FMOD.Studio;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -380,6 +381,8 @@ namespace LoU
                             if (_objectId != null && ulong.TryParse(_objectId, out ulong objectId))
                             {
                                 DynamicObject dynamicObject = Utils.FindDynamicObject(objectId);
+                                Logging.LogObject(dynamicObject);
+                                
                                 if (dynamicObject != null)
                                 {
                                     items[objectId.ToString()] = dynamicObject;
