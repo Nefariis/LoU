@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using Component = UnityEngine.Component;
 
@@ -13,33 +14,6 @@ namespace LoU
     internal static class Extensions
     {
         
-
-        internal static bool Contains2(this string source, string toCheck)
-        {
-            if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(toCheck)) return false;
-            return source.IndexOf(toCheck, StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        internal static bool IsNullOrEmpty(this string source)
-        {
-            return string.IsNullOrEmpty(source);
-        }
-
-        internal static bool IsNotNullOrEmpty(this string source)
-        {
-            return !string.IsNullOrEmpty(source);
-        }
-
-        internal static bool IsNullOrEmpty<T>(this List<T> source)
-        {
-            return source.IsNull() || source.Count == 0;
-        }
-        
-        internal static bool IsNullOrEmpty<T>(this IEnumerable<T> source)
-        {
-            return source == null || !source.Any();
-        }
-
         internal static bool IsNull<T>(this T source)
         {
             return source == null;
@@ -47,12 +21,34 @@ namespace LoU
 
         internal static bool IsNotNull<T>(this T source)
         {
-            return source != null;
+            return !source.IsNull();
+        }
+        
+        internal static bool IsEmpty<T>(this T source)
+        {
+            if (typeof(T) == typeof(string))
+                return (string) (object) source ==  "";
+            return ((ICollection<object>) source).Count == 0;
         }
 
-        internal static bool IsEmpty(this string source)
+        internal static bool IsNotEmpty<T>(this T source)
         {
-            return source == "";
+            return !source.IsEmpty();
+        }
+        internal static bool IsNullOrEmpty<T>(this T source)
+        {
+            return source.IsNull() || source.IsEmpty();
+        }
+        
+        internal static bool IsNotNullOrEmpty<T>(this T source)
+        {
+            return !source.IsNullOrEmpty();
+        }
+        
+        internal static bool Contains2(this string source, string toCheck)
+        {
+            if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(toCheck)) return false;
+            return source.IndexOf(toCheck, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         internal static bool IsDictionary(this object o)
@@ -74,8 +70,8 @@ namespace LoU
         
         internal static Vector3 RelativePositionFrom(this Transform transform, Transform ancestor)
         {
-            Vector3 position = transform.localPosition;
-            Transform t = transform.parent;
+            var position = transform.localPosition;
+            var t = transform.parent;
             
             while (t.IsNotNull() && t != ancestor)
             {
@@ -159,8 +155,7 @@ namespace LoU
             }
             else
             {
-                DynamicObject dynamicObject = ClientObjectManager.DJCGIMIDOPB.GetDynamicObjectById(objectId);
-                return dynamicObject;
+                return ClientObjectManager.DJCGIMIDOPB.GetDynamicObjectById(objectId);
             }
 
             Logging.Log($"[FindDynamicObject] - Did not find Dynamic Object by id {objectId} and {containerId}.");
@@ -177,15 +172,8 @@ namespace LoU
                         return obj.GetComponent<ClientObject>();
                 }
             }
-            else
-            {
-                ClientObject clientObject = ClientObjectManager.DJCGIMIDOPB.GetClientObjectById(objectId);
-                if (!clientObject.IsNull())
-                    return clientObject;
-            }
-
-            Logging.Log($"[FindClientObject] - Did not find Client Object by id {objectId} and {containerId}.");
-            return null;
+            
+            return ClientObjectManager.DJCGIMIDOPB.GetClientObjectById(objectId);
         }
 
         public static ClientObject FindPermanentObject(int permanentId)
@@ -279,10 +267,11 @@ namespace LoU
             return field?.GetValue(instance);
         }
 
-        public static void SetInstanceField<T1>(T1 instance, string fieldName, object value)
+        public static void SetInstanceField<T>(T instance, string fieldName, object value)
         {
+            if (instance.IsNull() || value.IsNull()) return;
             const BindingFlags bindFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-            var field = typeof(T1).GetField(fieldName, bindFlags);
+            var field = typeof(T).GetField(fieldName, bindFlags);
             field?.SetValue(instance, value);
         }
     }
@@ -290,53 +279,17 @@ namespace LoU
     internal static class Logging {
         
         private static bool DEBUGGING = false;
-        
-        private static readonly List<Type> Components = new List<Type> {typeof(DynamicWindow), typeof(UIWidget), 
-            typeof(BoxCollider), typeof(DynamicWindowTwoLabelButton), typeof(DynamicWindowDefaultButton), 
-            typeof(UIImageButton), typeof(UIPlaySound), typeof(UIButtonMessage), typeof(DynamicWindowScrollableLabel), 
-            typeof(UIEventListener), typeof(BoxCollider), typeof(BoxCollider), typeof(UIEventListener), typeof(UILabel)};
 
         public static void Log(string s)
         {
             if (DEBUGGING) Debug.Log($"LoU - {DateTime.UtcNow:o} - {s}");
         }
 
-        public static void Log(MonoBehaviour c)
-        {
-            if (!DEBUGGING) return;
-
-            if (c.gameObject && c.gameObject.GetComponent<UIEventListener>())
-                Log("c.gameObject has listener!");
-            if (c.transform && c.transform.GetComponent<UIEventListener>())
-                Log("c.transform has listener!");
-
-            foreach (var component in Components)
-            {
-                var compValue = c.GetComponent(component);
-                if(c.GetComponent(component).IsNull()) continue;
-
-                Log(component.ToString());
-                LogProps(compValue);
-
-                if (component != typeof(UILabel)) continue;
-                var uiLabel = (UILabel) compValue;
-
-                if (uiLabel.GBHBIODJFCD != "[412A08]Craft") continue;
-                Log("CRAFT BUTTON FOUND");
-                    
-                if (uiLabel.GetComponent<UIEventListener>().IsNull()) continue;
-                Log("uiLabel has listener!");
-                    
-                if (uiLabel.transform.IsNotNull())
-                    Log("uiLabel.transform has listener!");
-                if (uiLabel.gameObject.IsNotNull())
-                    Log("uiLabel.gameObject has listener!");
-            }
-        }
-
         private static void Log(GameObject c)
         {
             if (!DEBUGGING) return;
+            
+            Log( $"--- GAME OBJECT {c.GetInstanceID()} START ---");
             
             if (c.gameObject && c.gameObject.GetComponent<UIEventListener>())
                 Log($"GameObject Name: {c.gameObject.name} Tag: {c.gameObject.tag} Has Listener!");
@@ -348,85 +301,38 @@ namespace LoU
             c.GetComponents<Component>().Enumerate((comp, i) =>
             {
                 Log($"i: {i.ToString()} | name: {comp.name} | tag: {comp.tag} | type: {comp.GetType()}");
-                LogProps(comp);
 
-                if (comp.GetType() != typeof(UILabel)) return;
-                var uiLabel = (UILabel) comp;
-
-                if (uiLabel.GBHBIODJFCD != "[412A08]Craft") return;
-                Log("CRAFT BUTTON FOUND");
-
-                if (!uiLabel.GetComponent<UIEventListener>()) return;
-                Log("uiLabel has listener!");
-
-                if (uiLabel.transform.IsNotNull())
-                    Log("uiLabel.transform has listener!");
-                if (uiLabel.gameObject.IsNotNull())
-                    Log("uiLabel.gameObject has listener!");
-            });
-            
-
-            foreach (Component component in c.GetComponents<Component>())
-            {
-                if(!component) continue;
-
-                Log(component.ToString());
-
-            }
-        }
-
-        public static void Log(Transform o)
-        {
-            
-            var children = Enumerable.ToList(
-                from GameObject child in o.transform select child.gameObject);
-            
-            Log($"*** CHILDREN LOG {o.name} ({children.Count}) START ***");
-            
-            foreach (var c in children)
-            {
-                LogProps(c);
+                if (comp.GetComponent<UIEventListener>()) return;
+                    Log($"{comp.name} has listener!");
+                if (comp.transform.IsNotNull())
+                    Log($"{comp.name}.transform has listener!");
+                if (comp.gameObject.IsNotNull())
+                    Log($"{comp.name}.gameObject has listener!");
                 
-                if (c.GetComponent<UIEventListener>())
-                    Log("child has listener!");
-                if (c.gameObject && c.gameObject.GetComponent<UIEventListener>())
-                    Log("child.gameObject has listener!");
-                if (c.transform && c.transform.GetComponent<UIEventListener>())
-                    Log("child.transform has listener!");
-
-
-                //GBHBIODJFCD =[412A08] / Craft All
-                Log("trying to enumerate " + c.GetComponents<UnityEngine.Component>());
-                int i = 0;
-                foreach (var comp in c.GetComponents<UnityEngine.Component>())
-                {
-                    i = i + 1;
-                    Log(i.ToString());
-                    Log(comp.name);
-                    Log(comp.tag);
-                    Log(comp.GetType().ToString());
-                }
-                Log("finish");
-                Log(c);
-            }
-            Log($"*** CHILDREN LOG {o.name} ({children.Count}) END ***");
+                LogProps(comp);
+            });
+            Log( $"--- GAME OBJECT {c.GetInstanceID()} End ---");
         }
 
         public static void LogObject(DynamicObject obj)
         {
+            if (!DEBUGGING) return;
+            
             Log( $"--- OBJECT {obj.GetInstanceID()} START ---");
             LogProps(obj);
-            Log("***CLIENT OBJECT***");
+            Log("*** CLIENT OBJECT ***");
             LogProps(obj.AOJMJNFMBJO);
-            Log("***TRANSFORM***");
+            Log("*** TRANSFORM ***");
             LogProps(obj.transform);
-            Log("***GAME OBJECT***");
+            Log("*** GAME OBJECT ***");
             LogProps(obj.gameObject);
             Log( $"--- OBJECT {obj.GetInstanceID()} END ---");
         }
 
         private static void LogProps(object obj)
         {
+            if (!DEBUGGING) return;
+            
             Log("--- PROPS START ---");
             foreach (PropertyDescriptor descriptor in TypeDescriptor.GetProperties(obj))
             {
