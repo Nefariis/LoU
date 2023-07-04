@@ -70,10 +70,10 @@ namespace LoU
 
         public void Start()
         {
-            Utils.Log("LoU.dll started!");
+            Logging.Log("LoU.dll started Zach!");
 
             this.ProcessId = Process.GetCurrentProcess().Id;
-            Utils.Log("ProcessId: " + this.ProcessId.ToString());
+            Logging.Log("ProcessId: " + this.ProcessId.ToString());
 
             this.ClientStatusMemoryMapMutexName = "ELOU_CS_MX_" + this.ProcessId.ToString();
             this.ClientStatusMemoryMapName = "ELOU_CS_" + this.ProcessId.ToString();
@@ -94,7 +94,7 @@ namespace LoU
             }
 
             // Cache AssemblyCSharp assembly, it will come handy for dynamic types resolution and other shenanigans
-            Utils.Log("Loading Assemblies");
+            Logging.Log("Loading Assemblies");
             Assembly[] Assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly Assembly in Assemblies)
             {
@@ -102,7 +102,7 @@ namespace LoU
                 {
                     if (Assembly.GetName().Name == "Assembly-CSharp")
                     {
-                        Utils.Log("Assembly-CSharp found.");
+                        Logging.Log("Assembly-CSharp found.");
                         this.AssemblyCSharp = Assembly;
                         break;
                     }
@@ -111,13 +111,13 @@ namespace LoU
             }
             if (AssemblyCSharp == null)
             {
-                Utils.Log("Assembly-CSharp not found!");
+                Logging.Log("Assembly-CSharp not found!");
             }
         }
 
         public void OnDestroy()
         {
-            Utils.Log("OnDestroy!");
+            Logging.Log("OnDestroy!");
             this.ClientStatusMemoryMap = null;
             this.ClientCommandsMemoryMap = null;
             this.applicationController = null;
@@ -218,7 +218,7 @@ namespace LoU
                 LastClientCommandTimestamp = ClientCommand.TimeStamp;
                 try
                 {
-                    Utils.Log("New command " + ClientCommand.CommandType.ToString() + " received at " + LastClientCommandTimestamp.ToString() + "! Params:");
+                    Logging.Log("New command " + ClientCommand.CommandType.ToString() + " received at " + LastClientCommandTimestamp.ToString() + "! Params:");
                     foreach (var CommandParam in ClientCommand.CommandParams)
                     {
                         string CommandParamValue = "";
@@ -237,12 +237,12 @@ namespace LoU
                                 CommandParamValue += $"(Unknown)";
                                 break;
                         }
-                        Utils.Log($"[{CommandParam.Key}] {CommandParamValue}");
+                        Logging.Log($"[{CommandParam.Key}] {CommandParamValue}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Utils.Log("Error logging params: " + ex.ToString());
+                    Logging.Log("Error logging params: " + ex.ToString());
                 }
                 switch (ClientCommand.CommandType)
                 {
@@ -262,7 +262,7 @@ namespace LoU
                             {
                                 // Prefabs found, let's return
                                 watch.Stop();
-                                Utils.Log($"LoadMap({loadedMapRegion}) from prefabs took {watch.ElapsedMilliseconds.ToString()}ms, {loadedMapTiles.Count()} loaded.");
+                                Logging.Log($"LoadMap({loadedMapRegion}) from prefabs took {watch.ElapsedMilliseconds.ToString()}ms, {loadedMapTiles.Count()} loaded.");
                                 break;
                             }
 
@@ -272,7 +272,7 @@ namespace LoU
                             {
                                 // Prefabs found, let's return
                                 watch.Stop();
-                                Utils.Log($"LoadMap({loadedMapRegion} with suffix Maps) from prefabs took {watch.ElapsedMilliseconds.ToString()}ms, {loadedMapTiles.Count()} loaded.");
+                                Logging.Log($"LoadMap({loadedMapRegion} with suffix Maps) from prefabs took {watch.ElapsedMilliseconds.ToString()}ms, {loadedMapTiles.Count()} loaded.");
                                 break;
                             }
 
@@ -284,7 +284,7 @@ namespace LoU
                             if (s != null && s.isLoaded)
                             {
                                 // Scene already loaded, No need to load it (and then unload it)
-                                Utils.Log("Scene " + region + " already loaded");
+                                Logging.Log("Scene " + region + " already loaded");
 
                                 // Just search for the minimap root object and return the tiles
                                 foreach (var rgo in s.GetRootGameObjects())
@@ -297,12 +297,12 @@ namespace LoU
                                 }
 
                                 watch.Stop();
-                                Utils.Log($"LoadMap({loadedMapRegion}) from scene took {watch.ElapsedMilliseconds.ToString()}ms, {loadedMapTiles.Count()} loaded.");
+                                Logging.Log($"LoadMap({loadedMapRegion}) from scene took {watch.ElapsedMilliseconds.ToString()}ms, {loadedMapTiles.Count()} loaded.");
                             }
                             else
                             {
                                 // We need to load it (and then unload it)
-                                Utils.Log("Scene " + region + " needs to be loaded");
+                                Logging.Log("Scene " + region + " needs to be loaded");
 
                                 UnityEngine.Events.UnityAction<Scene, LoadSceneMode> onSceneLoaded = null;
                                 onSceneLoaded = (Scene _scene, LoadSceneMode _mode) =>
@@ -313,7 +313,7 @@ namespace LoU
                                         if (rgo.name == "UI_all" || rgo.name == "MinimapperRoot")
                                         {
                                             loadedMapTiles = rgo.GetComponentsInChildren<Renderer>();
-                                            Utils.Log($"Scene {loadedMapRegion} loaded, {loadedMapTiles.Count()} loaded.");
+                                            Logging.Log($"Scene {loadedMapRegion} loaded, {loadedMapTiles.Count()} loaded.");
                                         }
                                     }
                                 };
@@ -322,7 +322,7 @@ namespace LoU
                                 loadedMapScene = loadedMapRegion;
 
                                 watch.Stop();
-                                Utils.Log($"LoadMap({loadedMapRegion}) from scene took {watch.ElapsedMilliseconds.ToString()}ms, tiles still loading.");
+                                Logging.Log($"LoadMap({loadedMapRegion}) from scene took {watch.ElapsedMilliseconds.ToString()}ms, tiles still loading.");
                             }
 
                             break;
@@ -341,7 +341,7 @@ namespace LoU
                             }
                             watch.Stop();
 
-                            Utils.Log($"ExportTile({loadedMapRegion}) took " + watch.ElapsedMilliseconds.ToString() + "ms");
+                            Logging.Log($"ExportTile({loadedMapRegion}) took " + watch.ElapsedMilliseconds.ToString() + "ms");
 
                             break;
                         }
@@ -355,7 +355,7 @@ namespace LoU
                             if (loadedMapScene != null)
                             {
                                 SceneManager.UnloadSceneAsync(loadedMapScene);
-                                Utils.Log($"Unloading scene {loadedMapScene}");
+                                Logging.Log($"Unloading scene {loadedMapScene}");
                             }
 
                             loadedMapScene = null;
@@ -363,7 +363,7 @@ namespace LoU
                             loadedMapTiles = null;
                             Resources.UnloadUnusedAssets();
 
-                            Utils.Log("UnloadMap() took " + watch.ElapsedMilliseconds.ToString() + "ms");
+                            Logging.Log("UnloadMap() took " + watch.ElapsedMilliseconds.ToString() + "ms");
                             watch.Stop();
                             break;
                         }
@@ -421,12 +421,12 @@ namespace LoU
                             catch (Exception ex)
                             {
                                 this.FindItemResults = null;
-                                Utils.Log("Error building FindItemResults!");
-                                Utils.Log(ex.ToString());
+                                Logging.Log("Error building FindItemResults!");
+                                Logging.Log(ex.ToString());
                             }
 
                             watch.Stop();
-                            Utils.Log("FindItem took " + watch.ElapsedMilliseconds.ToString() + "ms");
+                            Logging.Log("FindItem took " + watch.ElapsedMilliseconds.ToString() + "ms");
                             break;
                         }
 
@@ -481,14 +481,14 @@ namespace LoU
                                            null,
                                     ID = f.Value?.PermanentId,
                                     NAME = f.Value?.name,
-                                    STONESTATE = (int?)Utils.GetInstanceField(f.Value?.GetComponent<StoneStateHandler>(), "IKKDABEEPAF"),
+                                    STONESTATE = (int?)InstanceFields.GetInstanceField(f.Value?.GetComponent<StoneStateHandler>(), "IKKDABEEPAF"),
                                     TEXTURE =
                                            f.Value?.GetComponentInChildren<Renderer>()?.materials?.Where(m => m != null && m.mainTexture != null).Select(m => m.mainTexture.name) != null
                                            ?
                                            String.Join(",", f.Value?.GetComponentInChildren<Renderer>()?.materials?.Where(m => m != null && m.mainTexture != null).Select(m => m.mainTexture.name))
                                            :
                                            null,
-                                    TREESTATE = (int?)Utils.GetInstanceField(f.Value?.GetComponent<TreeStateHandler>(), "IKKDABEEPAF"),
+                                    TREESTATE = (int?)InstanceFields.GetInstanceField(f.Value?.GetComponent<TreeStateHandler>(), "IKKDABEEPAF"),
                                     X = f.Value?.transform?.position.x,
                                     Y = f.Value?.transform?.position.y,
                                     Z = f.Value?.transform?.position.z,
@@ -499,12 +499,12 @@ namespace LoU
                             catch (Exception ex)
                             {
                                 this.FindPermanentResults = null;
-                                Utils.Log("Error building FindPermanentResults!");
-                                Utils.Log(ex.ToString());
+                                Logging.Log("Error building FindPermanentResults!");
+                                Logging.Log(ex.ToString());
                             }
 
                             watch.Stop();
-                            Utils.Log("FindPermanent took " + watch.ElapsedMilliseconds.ToString() + "ms");
+                            Logging.Log("FindPermanent took " + watch.ElapsedMilliseconds.ToString() + "ms");
                             break;
                         }
 
@@ -529,12 +529,12 @@ namespace LoU
                             catch (Exception ex)
                             {
                                 this.FindPanelResults = null;
-                                Utils.Log("Error building FindPanelResults!");
-                                Utils.Log(ex.ToString());
+                                Logging.Log("Error building FindPanelResults!");
+                                Logging.Log(ex.ToString());
                             }
 
                             watch.Stop();
-                            Utils.Log("FindPanel took " + watch.ElapsedMilliseconds.ToString() + "ms");
+                            Logging.Log("FindPanel took " + watch.ElapsedMilliseconds.ToString() + "ms");
                             break;
                         }
 
@@ -607,7 +607,7 @@ namespace LoU
                                                 {
                                                     if (int.TryParse(Collider.name, out int ButtonID))
                                                     {
-                                                        Utils.Log("Collider " + Collider.name + " found by coordinates!");
+                                                        Logging.Log("Collider " + Collider.name + " found by coordinates!");
                                                         buttons.Add(new ClientStatus.FINDBUTTONStruct()
                                                         {
                                                             NAME = ButtonID.ToString(),
@@ -629,17 +629,17 @@ namespace LoU
                                             {
                                                 if (string.IsNullOrEmpty(_buttonName) || Label.FJNGNLHHOEI.ToLower().Contains(_buttonName.ToLower()))
                                                 {
-                                                    Utils.Log("Label " + Label.FJNGNLHHOEI + " found! Searching for collider...");
+                                                    Logging.Log("Label " + Label.FJNGNLHHOEI + " found! Searching for collider...");
 
                                                     // Calculate the label's center, relative to the dynamic window
-                                                    Vector3 LabelPositionRelativeToDynamicWindow = Utils.CalculateRelativePosition(Label.transform, dynamicWindow.transform);
+                                                    Vector3 LabelPositionRelativeToDynamicWindow = Label.transform.RelativePositionFrom(dynamicWindow.transform);
                                                     Vector3 LabelCenterRelativeToDynamicWindow = LabelPositionRelativeToDynamicWindow + Label.IOGCKBNELGA; // Label.IOGCKBNELGA is the UIWidget's localCenter property documented here http://tasharen.com/ngui/docs/class_u_i_widget.html
 
                                                     // And search for a collider that is colliding with the label's center
                                                     foreach (BoxCollider Collider in Colliders)
                                                     {
                                                         // Calculate the collider's center, relative to the dynamic window
-                                                        Vector3 ColliderPositionRelativeToDynamicWindow = Utils.CalculateRelativePosition(Collider.transform, dynamicWindow.transform);
+                                                        Vector3 ColliderPositionRelativeToDynamicWindow = Collider.transform.RelativePositionFrom(dynamicWindow.transform);
                                                         Vector3 ColliderCenterRelativeToDynamicWindow = ColliderPositionRelativeToDynamicWindow + Collider.center;
 
                                                         // Calculate collider boundaries
@@ -654,7 +654,7 @@ namespace LoU
                                                         {
                                                             if (int.TryParse(Collider.name, out int ButtonID))
                                                             {
-                                                                Utils.Log("Collider " + Collider.name + " found!");
+                                                                Logging.Log("Collider " + Collider.name + " found!");
                                                                 buttons.Add(new ClientStatus.FINDBUTTONStruct()
                                                                 {
                                                                     NAME = ButtonID.ToString(),
@@ -671,17 +671,17 @@ namespace LoU
                                             // KAAFKBBECEF is an internal type, we need to use reflection
                                             Type KAAFKBBECEF = AssemblyCSharp.GetType("KAAFKBBECEF");
 
-                                            object HGBANEEHBLH = Utils.GetInstanceField(dynamicWindow, "HGBANEEHBLH");
+                                            object HGBANEEHBLH = InstanceFields.GetInstanceField(dynamicWindow, "HGBANEEHBLH");
 
                                             int i = 0;
                                             foreach (object o in (HGBANEEHBLH as IEnumerable))
                                             {
                                                 object casted = Convert.ChangeType(o, KAAFKBBECEF);
 
-                                                string KFBLLAJBKAD = (string)Utils.GetInstanceField(KAAFKBBECEF, casted, "KFBLLAJBKAD");
+                                                string KFBLLAJBKAD = (string)InstanceFields.GetInstanceField(KAAFKBBECEF, casted, "KFBLLAJBKAD");
                                                 if (KFBLLAJBKAD != null && (string.IsNullOrEmpty(_buttonName) || KFBLLAJBKAD.ToLower().Contains(_buttonName.ToLower())))
                                                 {
-                                                    Utils.Log("Found DynamicWindow Action by KFBLLAJBKAD!");
+                                                    Logging.Log("Found DynamicWindow Action by KFBLLAJBKAD!");
                                                     buttons.Add(new ClientStatus.FINDBUTTONStruct()
                                                     {
                                                         NAME = i.ToString(),
@@ -689,10 +689,10 @@ namespace LoU
                                                     });
                                                 }
 
-                                                string KFFEBNDBIPA = (string)Utils.GetInstanceField(KAAFKBBECEF, casted, "KFFEBNDBIPA");
+                                                string KFFEBNDBIPA = (string)InstanceFields.GetInstanceField(KAAFKBBECEF, casted, "KFFEBNDBIPA");
                                                 if (KFFEBNDBIPA != null && (string.IsNullOrEmpty(_buttonName) || KFFEBNDBIPA.ToLower().Contains(_buttonName.ToLower())))
                                                 {
-                                                    Utils.Log("Found DynamicWindow Action by KFFEBNDBIPA!");
+                                                    Logging.Log("Found DynamicWindow Action by KFFEBNDBIPA!");
                                                     buttons.Add(new ClientStatus.FINDBUTTONStruct()
                                                     {
                                                         NAME = i.ToString(),
@@ -701,10 +701,10 @@ namespace LoU
                                                 }
 
                                                 // Seems to be ToolTip Text
-                                                string ELGLAFGJGAO = (string)Utils.GetInstanceField(KAAFKBBECEF, casted, "ELGLAFGJGAO");
+                                                string ELGLAFGJGAO = (string)InstanceFields.GetInstanceField(KAAFKBBECEF, casted, "ELGLAFGJGAO");
                                                 if (ELGLAFGJGAO != null && (string.IsNullOrEmpty(_buttonName) || ELGLAFGJGAO.ToLower().Contains(_buttonName.ToLower())))
                                                 {
-                                                    Utils.Log("Found DynamicWindow Action by ELGLAFGJGAO!");
+                                                    Logging.Log("Found DynamicWindow Action by ELGLAFGJGAO!");
                                                     buttons.Add(new ClientStatus.FINDBUTTONStruct()
                                                     {
                                                         NAME = i.ToString(),
@@ -712,10 +712,10 @@ namespace LoU
                                                     });
                                                 }
 
-                                                string PDENMACFHFK = (string)Utils.GetInstanceField(KAAFKBBECEF, casted, "PDENMACFHFK");
+                                                string PDENMACFHFK = (string)InstanceFields.GetInstanceField(KAAFKBBECEF, casted, "PDENMACFHFK");
                                                 if (PDENMACFHFK != null && (string.IsNullOrEmpty(_buttonName) || PDENMACFHFK.ToLower().Contains(_buttonName.ToLower())))
                                                 {
-                                                    Utils.Log("Found DynamicWindow Action by PDENMACFHFK!");
+                                                    Logging.Log("Found DynamicWindow Action by PDENMACFHFK!");
                                                     buttons.Add(new ClientStatus.FINDBUTTONStruct()
                                                     {
                                                         NAME = i.ToString(),
@@ -723,10 +723,10 @@ namespace LoU
                                                     });
                                                 }
 
-                                                string OEFOJOODPBK = (string)Utils.GetInstanceField(KAAFKBBECEF, casted, "OEFOJOODPBK");
+                                                string OEFOJOODPBK = (string)InstanceFields.GetInstanceField(KAAFKBBECEF, casted, "OEFOJOODPBK");
                                                 if (OEFOJOODPBK != null && (string.IsNullOrEmpty(_buttonName) || OEFOJOODPBK.ToLower().Contains(_buttonName.ToLower())))
                                                 {
-                                                    Utils.Log("Found DynamicWindow Action by OEFOJOODPBK!");
+                                                    Logging.Log("Found DynamicWindow Action by OEFOJOODPBK!");
                                                     buttons.Add(new ClientStatus.FINDBUTTONStruct()
                                                     {
                                                         NAME = i.ToString(),
@@ -734,10 +734,10 @@ namespace LoU
                                                     });
                                                 }
 
-                                                string JCIPDLPHPFB = (string)Utils.GetInstanceField(KAAFKBBECEF, casted, "JCIPDLPHPFB");
+                                                string JCIPDLPHPFB = (string)InstanceFields.GetInstanceField(KAAFKBBECEF, casted, "JCIPDLPHPFB");
                                                 if (JCIPDLPHPFB != null && (string.IsNullOrEmpty(_buttonName) || ELGLAFGJGAO.ToLower().Contains(_buttonName.ToLower())))
                                                 {
-                                                    Utils.Log("Found DynamicWindow Action by JCIPDLPHPFB!");
+                                                    Logging.Log("Found DynamicWindow Action by JCIPDLPHPFB!");
                                                     buttons.Add(new ClientStatus.FINDBUTTONStruct()
                                                     {
                                                         NAME = i.ToString(),
@@ -755,7 +755,7 @@ namespace LoU
                             this.FindButtonResults = buttons.ToArray();
 
                             watch.Stop();
-                            Utils.Log("FindButton took " + watch.ElapsedMilliseconds.ToString() + "ms");
+                            Logging.Log("FindButton took " + watch.ElapsedMilliseconds.ToString() + "ms");
                             break;
                         }
 
@@ -785,7 +785,7 @@ namespace LoU
                                         {
                                             if (string.IsNullOrEmpty(_inputName) || Input.gameObject.name.ToLower().Contains(_inputName.ToLower()))
                                             {
-                                                Utils.Log("DynamicWindowTextField " + Input.gameObject.name + " found!");
+                                                Logging.Log("DynamicWindowTextField " + Input.gameObject.name + " found!");
                                                 inputs.Add(new ClientStatus.FINDINPUTStruct()
                                                 {
                                                     ID = Input.gameObject?.name
@@ -799,7 +799,7 @@ namespace LoU
                             this.FindInputResults = inputs.ToArray();
 
                             watch.Stop();
-                            Utils.Log("FindInput took " + watch.ElapsedMilliseconds.ToString() + "ms");
+                            Logging.Log("FindInput took " + watch.ElapsedMilliseconds.ToString() + "ms");
                             break;
                         }
 
@@ -841,7 +841,7 @@ namespace LoU
                                             {
                                                 if (int.TryParse(Collider.name, out int ButtonID))
                                                 {
-                                                    Utils.Log("Collider " + Collider.name + " found by coordinates! Searching all labels within this collider...");
+                                                    Logging.Log("Collider " + Collider.name + " found by coordinates! Searching all labels within this collider...");
 
                                                     String FullLabelText = "";
 
@@ -855,7 +855,7 @@ namespace LoU
                                                         if (ColliderX1 <= PartialLabelCenterX && PartialLabelCenterX <= ColliderX2 &&
                                                             ColliderY2 <= PartialLabelCenterY && PartialLabelCenterY <= ColliderY1)
                                                         {
-                                                            Utils.Log("Found partial label:" + PartialLabel.FJNGNLHHOEI);
+                                                            Logging.Log("Found partial label:" + PartialLabel.FJNGNLHHOEI);
                                                             if (!FullLabelText.Contains(PartialLabel.FJNGNLHHOEI))
                                                             {
                                                                 FullLabelText += PartialLabel.FJNGNLHHOEI;
@@ -883,7 +883,7 @@ namespace LoU
 
                                             if (int.TryParse(Collider.name, out int ButtonID) && ButtonID == labelName)
                                             {
-                                                Utils.Log("Collider " + Collider.name + " found! Searching all labels within this collider...");
+                                                Logging.Log("Collider " + Collider.name + " found! Searching all labels within this collider...");
 
                                                 String FullLabelText = "";
 
@@ -897,7 +897,7 @@ namespace LoU
                                                     if (ColliderX1 <= PartialLabelCenterX && PartialLabelCenterX <= ColliderX2 &&
                                                         ColliderY2 <= PartialLabelCenterY && PartialLabelCenterY <= ColliderY1)
                                                     {
-                                                        Utils.Log("Found partial label:" + PartialLabel.FJNGNLHHOEI);
+                                                        Logging.Log("Found partial label:" + PartialLabel.FJNGNLHHOEI);
                                                         if (!FullLabelText.Contains(PartialLabel.FJNGNLHHOEI))
                                                         {
                                                             FullLabelText += PartialLabel.FJNGNLHHOEI;
@@ -919,7 +919,7 @@ namespace LoU
                                         {
                                             if (string.IsNullOrEmpty(_labelText) || Label.FJNGNLHHOEI.ToLower().Contains(_labelText.ToLower()))
                                             {
-                                                Utils.Log("Label " + Label.FJNGNLHHOEI + " found! Searching for collider...");
+                                                Logging.Log("Label " + Label.FJNGNLHHOEI + " found! Searching for collider...");
 
                                                 // Calculate the label's center
                                                 float LabelCenterX = Label.transform.localPosition.x + Label.IOGCKBNELGA.x;
@@ -937,7 +937,7 @@ namespace LoU
                                                     {
                                                         if (int.TryParse(Collider.name, out int ButtonID))
                                                         {
-                                                            Utils.Log("Collider " + Collider.name + " found! Searching all labels within this collider...");
+                                                            Logging.Log("Collider " + Collider.name + " found! Searching all labels within this collider...");
 
                                                             String FullLabelText = "";
 
@@ -951,7 +951,7 @@ namespace LoU
                                                                 if (ColliderX1 <= PartialLabelCenterX && PartialLabelCenterX <= ColliderX2 &&
                                                                     ColliderY2 <= PartialLabelCenterY && PartialLabelCenterY <= ColliderY1)
                                                                 {
-                                                                    Utils.Log("Found partial label:" + PartialLabel.FJNGNLHHOEI);
+                                                                    Logging.Log("Found partial label:" + PartialLabel.FJNGNLHHOEI);
                                                                     if (!FullLabelText.Contains(PartialLabel.FJNGNLHHOEI))
                                                                     {
                                                                         FullLabelText += PartialLabel.FJNGNLHHOEI;
@@ -983,12 +983,12 @@ namespace LoU
                             catch (Exception ex)
                             {
                                 this.FindLabelResults = null;
-                                Utils.Log("Error building FindLabelResults!");
-                                Utils.Log(ex.ToString());
+                                Logging.Log("Error building FindLabelResults!");
+                                Logging.Log(ex.ToString());
                             }
 
                             watch.Stop();
-                            Utils.Log("FindLabel took " + watch.ElapsedMilliseconds.ToString() + "ms");
+                            Logging.Log("FindLabel took " + watch.ElapsedMilliseconds.ToString() + "ms");
                             break;
                         }
 
@@ -1030,7 +1030,7 @@ namespace LoU
                             float z;
                             if (float.TryParse(_x, out x) && float.TryParse(_y, out y) && float.TryParse(_z, out z))
                             {
-                                Utils.Log("Moving to x=" + x + " y=" + y + " z=" + z);
+                                Logging.Log("Moving to x=" + x + " y=" + y + " z=" + z);
                                 Vector3 location = new Vector3(x, y, z);
                                 this.player.SetPathLocation(location, false);
                                 return;
@@ -1041,14 +1041,14 @@ namespace LoU
                                 ClientObject clientObject = Utils.FindClientObject(objectId);
                                 if (clientObject != null)
                                 {
-                                    Utils.Log("Moving to objectId=" + objectId.ToString());
+                                    Logging.Log("Moving to objectId=" + objectId.ToString());
                                     this.player.SetPathObject(clientObject, LocalPlayer.FHAIDCMBMHC.None);
                                     return;
                                 }
                                 clientObject = Utils.FindPermanentObject((int)objectId);
                                 if (clientObject != null)
                                 {
-                                    Utils.Log("Moving to permanentId=" + objectId.ToString());
+                                    Logging.Log("Moving to permanentId=" + objectId.ToString());
                                     this.player.SetPathObject(clientObject, LocalPlayer.FHAIDCMBMHC.None);
                                     break;
                                 }
@@ -1071,7 +1071,7 @@ namespace LoU
                                 if (_timeStamp != null && _timeStamp != "" && float.TryParse(_timeStamp, out float timeStamp))
                                 {
                                     // Obfuscation guessed from GameUI.ChatWindow.SystemMessage()
-                                    List<ChatWindow.AEDJOHFMLDG> MEMFCHFEKPN = (List<ChatWindow.AEDJOHFMLDG>)Utils.GetInstanceField(this.applicationController.GameUI.ChatWindow, "MEMFCHFEKPN");
+                                    List<ChatWindow.AEDJOHFMLDG> MEMFCHFEKPN = (List<ChatWindow.AEDJOHFMLDG>)InstanceFields.GetInstanceField(this.applicationController.GameUI.ChatWindow, "MEMFCHFEKPN");
                                     if (MEMFCHFEKPN != null)
                                     {
                                         ChatWindow.AEDJOHFMLDG message = MEMFCHFEKPN.FindLast(m => m.KCFOFGNMOBE > timeStamp);
@@ -1099,7 +1099,7 @@ namespace LoU
                                 if (_timeStamp != null && _timeStamp != "" && float.TryParse(_timeStamp, out float timeStamp))
                                 {
                                     // Obfuscation guessed from GameUI.ChatWindow.SystemMessage()
-                                    List<ChatWindow.AEDJOHFMLDG> CEIMNNOCJHM = (List<ChatWindow.AEDJOHFMLDG>)Utils.GetInstanceField(this.applicationController.GameUI.ChatWindow, "CEIMNNOCJHM");
+                                    List<ChatWindow.AEDJOHFMLDG> CEIMNNOCJHM = (List<ChatWindow.AEDJOHFMLDG>)InstanceFields.GetInstanceField(this.applicationController.GameUI.ChatWindow, "CEIMNNOCJHM");
                                     if (CEIMNNOCJHM != null)
                                     {
                                         ChatWindow.AEDJOHFMLDG message = CEIMNNOCJHM.FindLast(m => !m.PIIMGFNGPEI.StartsWith("[System] ") && m.KCFOFGNMOBE > timeStamp);
@@ -1352,7 +1352,7 @@ namespace LoU
                             string _objectId = ExtractParam(ClientCommand.CommandParams, 0);
                             if (_objectId != null && ulong.TryParse(_objectId, out ulong objectId))
                             {
-                                Utils.Log("Trying by object id");
+                                Logging.Log("Trying by object id");
                                 try
                                 {
                                     MobileInstance mobile = Utils.GetMobile(objectId);
@@ -1364,8 +1364,8 @@ namespace LoU
                                 catch (Exception ex)
                                 {
                                     this.FindMobileResults = null;
-                                    Utils.Log("Error finding mobile by objectId!");
-                                    Utils.Log(ex.ToString());
+                                    Logging.Log("Error finding mobile by objectId!");
+                                    Logging.Log(ex.ToString());
                                 }
                             }
                             else
@@ -1382,8 +1382,8 @@ namespace LoU
                                     catch (Exception ex)
                                     {
                                         this.FindMobileResults = null;
-                                        Utils.Log("Error finding mobile by name and distance!");
-                                        Utils.Log(ex.ToString());
+                                        Logging.Log("Error finding mobile by name and distance!");
+                                        Logging.Log(ex.ToString());
                                     }
                                 }
                                 else
@@ -1395,8 +1395,8 @@ namespace LoU
                                     catch (Exception ex)
                                     {
                                         this.FindMobileResults = null;
-                                        Utils.Log("Error finding mobile by name!");
-                                        Utils.Log(ex.ToString());
+                                        Logging.Log("Error finding mobile by name!");
+                                        Logging.Log(ex.ToString());
                                     }
                                 }
                             }
@@ -1422,8 +1422,8 @@ namespace LoU
                             catch (Exception ex)
                             {
                                 this.FindMobileResults = null;
-                                Utils.Log("Error building FindMobileResults!");
-                                Utils.Log(ex.ToString());
+                                Logging.Log("Error building FindMobileResults!");
+                                Logging.Log(ex.ToString());
                             }
 
                             break;
@@ -1511,30 +1511,30 @@ namespace LoU
                                         {
                                             if (BoxCollider.gameObject.name == _buttonName)
                                             {
-                                                Utils.Log("Collider found!");
+                                                Logging.Log("Collider found!");
                                                 objectFound = BoxCollider.gameObject;
                                             }
                                         }
                                         if (objectFound != null)
                                         {
-                                            Utils.Log("OnButtonClicked(" + objectFound.name + ")");
+                                            Logging.Log("OnButtonClicked(" + objectFound.name + ")");
                                             dynamicWindow.OnButtonClicked(objectFound);
                                             break;
                                         }
                                         else
                                         {
-                                            Utils.Log("BoxCollider " + _buttonName + " not found!");
+                                            Logging.Log("BoxCollider " + _buttonName + " not found!");
                                         }
                                     }
                                     else
                                     {
-                                        Utils.Log("FloatingPanel " + _containerName + " found, but no dynamic window?!");
+                                        Logging.Log("FloatingPanel " + _containerName + " found, but no dynamic window?!");
                                     }
 
                                 }
                                 else
                                 {
-                                    Utils.Log("FloatingPanel " + _containerName + " not found!");
+                                    Logging.Log("FloatingPanel " + _containerName + " not found!");
                                 }
                             }
                         }
@@ -1560,21 +1560,21 @@ namespace LoU
                                         {
                                             Transform child = dynamicWindow.transform.GetChild(c);
                                             Children.Add(child.gameObject);
-                                            Utils.Log("Child gameobject name: " + child.gameObject.name);
+                                            Logging.Log("Child gameobject name: " + child.gameObject.name);
                                             if (child.gameObject.name == _inputName)
                                             {
-                                                Utils.Log("GameObject found!");
+                                                Logging.Log("GameObject found!");
                                                 objectFound = child.gameObject;
                                             }
                                             Component[] components = child.GetComponents<Component>();
                                             foreach (Component component in components)
                                             {
-                                                Utils.Log("Child component: " + component.name + "," + component.GetType().ToString());
+                                                Logging.Log("Child component: " + component.name + "," + component.GetType().ToString());
                                             }
                                         }
                                         if (objectFound != null)
                                         {
-                                            Utils.Log("Set(" + _newValue + ")");
+                                            Logging.Log("Set(" + _newValue + ")");
                                             DynamicWindowTextField input = objectFound.GetComponent<DynamicWindowTextField>();
                                             input.GOAGGCMCIBB = _newValue;
                                             break;
@@ -1684,12 +1684,12 @@ namespace LoU
                                 if (CustomVars.ContainsKey(name))
                                 {
                                     CustomVars[name] = value;
-                                    Utils.Log("CustomVar " + name + " exists, setting it to " + value.ToString());
+                                    Logging.Log("CustomVar " + name + " exists, setting it to " + value.ToString());
                                 }
                                 else
                                 {
                                     CustomVars.Add(name, value);
-                                    Utils.Log("CustomVar " + name + " does not exist, creating it with value " + value.ToString());
+                                    Logging.Log("CustomVar " + name + " does not exist, creating it with value " + value.ToString());
                                 }
                             }
                         }
@@ -1708,7 +1708,7 @@ namespace LoU
                                     if (CustomVars.ContainsKey(name))
                                     {
                                         CustomVars.Remove(name);
-                                        Utils.Log("CustomVar " + name + " removed.");
+                                        Logging.Log("CustomVar " + name + " removed.");
                                     }
                                 }
                             }
@@ -1724,12 +1724,12 @@ namespace LoU
                     case CommandType.SetSpeed:
                         {
                             this.updateFrequency = 1 / float.Parse(ExtractParam(ClientCommand.CommandParams, 0));
-                            Utils.Log("Setting update frequency to: " + updateFrequency);
+                            Logging.Log("Setting update frequency to: " + updateFrequency);
                         }
                         break;
 
                     default:
-                        Utils.Log("Not Implemented!");
+                        Logging.Log("Not Implemented!");
                         break;
 
                 }
@@ -1755,7 +1755,7 @@ namespace LoU
                 CheckedKeys.Clear();
             }
 
-            //Utils.Log("Props:");
+            //Logging.Log("Props:");
             //Dictionary<string, object> EBNBHBHNCFC = (Dictionary<string, object>)Utils.GetInstanceField(this.player, "EBNBHBHNCFC");
 
             // Character Info
@@ -1772,7 +1772,7 @@ namespace LoU
                     Type KAAFKBBECEF = AssemblyCSharp.GetType("KAAFKBBECEF");
                     if (KAAFKBBECEF != null)
                     {
-                        object HGBANEEHBLH = Utils.GetInstanceField(window, "HGBANEEHBLH");
+                        object HGBANEEHBLH = InstanceFields.GetInstanceField(window, "HGBANEEHBLH");
                         if (HGBANEEHBLH != null)
                         {
                             foreach (object o in (HGBANEEHBLH as IEnumerable))
@@ -1780,7 +1780,7 @@ namespace LoU
                                 object casted = Convert.ChangeType(o, KAAFKBBECEF);
                                 if (casted != null)
                                 {
-                                    string ELGLAFGJGAO = (string)Utils.GetInstanceField(KAAFKBBECEF, casted, "ELGLAFGJGAO");
+                                    string ELGLAFGJGAO = (string)InstanceFields.GetInstanceField(KAAFKBBECEF, casted, "ELGLAFGJGAO");
                                     if (!String.IsNullOrEmpty(ELGLAFGJGAO))
                                     {
                                         Buffs.Add(ELGLAFGJGAO.Replace('\n', '|'));
@@ -1815,7 +1815,7 @@ namespace LoU
             if (this.player != null)
             {
                 double? CharWeight = 0;
-                List<EquipmentObject> ICGEHBHPFOA = (List<EquipmentObject>)Utils.GetInstanceField(this.player, "ICGEHBHPFOA");
+                List<EquipmentObject> ICGEHBHPFOA = (List<EquipmentObject>)InstanceFields.GetInstanceField(this.player, "ICGEHBHPFOA");
                 if (ICGEHBHPFOA != null)
                 {
                     foreach (EquipmentObject obj in ICGEHBHPFOA)
@@ -1881,7 +1881,7 @@ namespace LoU
             ClientStatus.ClientInfo.CLIYRES = Screen.height;
             ClientStatus.ClientInfo.FULLSCREEN = Screen.fullScreen;
             ClientStatus.ClientInfo.CLIGAMESTATE = this.applicationController?.JOJPMHOLNHA.ToString();
-            ClientStatus.ClientInfo.SERVER = Utils.GetInstanceField(this.applicationController, "EGBNKJDFBEJ")?.ToString();
+            ClientStatus.ClientInfo.SERVER = InstanceFields.GetInstanceField(this.applicationController, "EGBNKJDFBEJ")?.ToString();
             ClientStatus.ClientInfo.TARGETFRAMERATE = Application.targetFrameRate;
             ClientStatus.ClientInfo.VSYNCCOUNT = QualitySettings.vSyncCount;
             ClientStatus.ClientInfo.MAINCAMERAMASK = Camera.main?.cullingMask;
@@ -1942,8 +1942,8 @@ namespace LoU
                 {
                     ClientStatus.Miscellaneous.NEARBYMONSTERS = null;
                     ClientStatus.Miscellaneous.MONSTERSNEARBY = null;
-                    Utils.Log("Error building NEARBYMONSTERS!");
-                    Utils.Log(ex.ToString());
+                    Logging.Log("Error building NEARBYMONSTERS!");
+                    Logging.Log(ex.ToString());
                 }
             }
             else
@@ -2002,7 +2002,7 @@ namespace LoU
             if (inputController != null)
             {
                 ClientStatus.Miscellaneous.TARGETLOADING = inputController.MAHPFOEKHPO;
-                ClientStatus.Miscellaneous.TARGETTYPE = ((InputController.FBKEBHPKOIC)(Utils.GetInstanceField(inputController, "BFNLCIMBCJF") ?? InputController.FBKEBHPKOIC.None)).ToString();
+                ClientStatus.Miscellaneous.TARGETTYPE = ((InputController.FBKEBHPKOIC)(InstanceFields.GetInstanceField(inputController, "BFNLCIMBCJF") ?? InputController.FBKEBHPKOIC.None)).ToString();
             }
             else
             {
@@ -2016,7 +2016,7 @@ namespace LoU
 
             ClientStatus.Miscellaneous.UPDATEFREQUENCY = this.updateFrequency;
 
-            //Utils.Log("UpdateStatus!");
+            //Logging.Log("UpdateStatus!");
             if (this.ProcessId != -1 && ClientStatusMemoryMap != null)
             {
                 ClientStatusMemoryMap.WriteMemoryMap<ClientStatus>(ClientStatus);
@@ -2026,11 +2026,11 @@ namespace LoU
         private float update;
         void Update()
         {
-            //Utils.Log("Update() Start");
+            //Logging.Log("Update() Start");
 
             try
             {
-                //Utils.Log("DeltaTime = " + Time.deltaTime.ToString());
+                //Logging.Log("DeltaTime = " + Time.deltaTime.ToString());
                 update += Time.deltaTime;
 
                 // Keypress Detection - check it at every frame and record keypresses, but then reset it when we update the gui
@@ -2078,10 +2078,10 @@ namespace LoU
                     }
                 }
 
-                //Utils.Log("update = " + update.ToString());
+                //Logging.Log("update = " + update.ToString());
                 if (update > updateFrequency)
                 {
-                    //Utils.Log("Update frequency: " + updateFrequency);
+                    //Logging.Log("Update frequency: " + updateFrequency);
                     update = 0;
 
                     var updateWatch = new System.Diagnostics.Stopwatch();
@@ -2106,17 +2106,17 @@ namespace LoU
                         // can be inferred by looking at SendMessage() in MessageCore.dll
                         if (applicationController.GPLIHPHPNKL != null)
                         {
-                            AOHDPDIPMKO GEDMGBHAEAB = (AOHDPDIPMKO)Utils.GetInstanceField<JFFJBADOENN>(applicationController.GPLIHPHPNKL, "GEDMGBHAEAB");
+                            AOHDPDIPMKO GEDMGBHAEAB = (AOHDPDIPMKO)InstanceFields.GetInstanceField<JFFJBADOENN>(applicationController.GPLIHPHPNKL, "GEDMGBHAEAB");
                             if (GEDMGBHAEAB != null)
                             {
                                 try
                                 {
-                                    Utils.SetInstanceField(GEDMGBHAEAB, "HCBFBBABLDC", true);
-                                    Utils.Log("INTERCEPTING ENABLED!");
+                                    InstanceFields.SetInstanceField(GEDMGBHAEAB, "HCBFBBABLDC", true);
+                                    Logging.Log("INTERCEPTING ENABLED!");
                                 }
                                 catch (Exception ex)
                                 {
-                                    Utils.Log(ex.ToString());
+                                    Logging.Log(ex.ToString());
                                 }
                                 finally
                                 {
@@ -2138,24 +2138,24 @@ namespace LoU
                         }
                         catch (Exception ex)
                         {
-                            Utils.Log("Error reading memory map: " + ex.ToString());
+                            Logging.Log("Error reading memory map: " + ex.ToString());
                         }
                         if (ClientCommandsArray != null)
                         {
                             ClientCommandsQueue = new Queue<ClientCommand>(ClientCommandsArray);
                             if (ClientCommandsQueue.Count > 0)
                             {
-                                Utils.Log("Command found");
+                                Logging.Log("Command found");
                                 ClientCommand = ClientCommandsQueue.Dequeue();
                                 ClientCommandId++;
                                 try
                                 {
                                     ProcessClientCommand(ClientCommand);
-                                    Utils.Log("Command " + ClientCommandId.ToString() + " processed");
+                                    Logging.Log("Command " + ClientCommandId.ToString() + " processed");
                                 }
                                 catch (Exception ex)
                                 {
-                                    Utils.Log("Error processing client command: " + ex.ToString());
+                                    Logging.Log("Error processing client command: " + ex.ToString());
                                 }
                             }
                         }
@@ -2167,7 +2167,7 @@ namespace LoU
                     }
                     catch (Exception ex)
                     {
-                        Utils.Log("Error updating status: " + ex.ToString());
+                        Logging.Log("Error updating status: " + ex.ToString());
                     }
 
                     if (this.ProcessId != -1 && this.ClientCommandsMemoryMap != null)
@@ -2180,20 +2180,20 @@ namespace LoU
                             }
                             catch (Exception ex)
                             {
-                                Utils.Log("Error reading memory map: " + ex.ToString());
+                                Logging.Log("Error reading memory map: " + ex.ToString());
                             }
                         }
                     }
 
                     updateWatch.Stop();
-                    //Utils.Log("Update finished in " + updateWatch.ElapsedMilliseconds.ToString());
+                    //Logging.Log("Update finished in " + updateWatch.ElapsedMilliseconds.ToString());
                 }
-                //Utils.Log("Update() finish");
+                //Logging.Log("Update() finish");
             }
             catch (Exception ex)
             {
-                Utils.Log(ex.ToString());
-                Utils.Log(ex.StackTrace);
+                Logging.Log(ex.ToString());
+                Logging.Log(ex.StackTrace);
             }
         }
 
@@ -2203,13 +2203,13 @@ namespace LoU
 
         void OnEnable()
         {
-            Utils.Log("OnEnable");
+            Logging.Log("OnEnable");
 
             try
             {
                 if (VERBOSE_DEBUG)
                 {
-                    Utils.Log("VERBOSE_DEBUG enabled!");
+                    Logging.Log("VERBOSE_DEBUG enabled!");
                     TraceModule module = new TraceModule("messagelog.");
                     module.AddDebugConsoleListener(SourceLevels.All);
                     ShardEngineDebug.AddTraceModule("messagelog.", module);
@@ -2218,13 +2218,13 @@ namespace LoU
             }
             catch (Exception ex)
             {
-                Utils.Log(ex.ToString());
+                Logging.Log(ex.ToString());
             }
         }
 
         void OnDisable()
         {
-            Utils.Log("OnDisable");
+            Logging.Log("OnDisable");
         }
     }
 }

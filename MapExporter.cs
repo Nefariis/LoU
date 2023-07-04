@@ -96,8 +96,8 @@ namespace LoU
                 ExportTexture2D(texture, exportFullName + ".jpg");
             } catch(Exception ex)
             {
-                Utils.Log($"Cannot export tile {exportFullName}:");
-                Utils.Log(ex.ToString());
+                Logging.Log($"Cannot export tile {exportFullName}:");
+                Logging.Log(ex.ToString());
             }
         }
     }
